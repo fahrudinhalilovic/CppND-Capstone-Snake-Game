@@ -6,6 +6,63 @@
 
 #include <regex>
 
+std::string ToString(Level lvl)
+{
+    switch ( lvl ) {
+        case Level::Beginner:
+            return "beginner";
+        case Level::Medium:
+            return "medium";
+        case Level::Advanced:
+            return "advanced";
+    }
+
+    // should not end up here at all...
+    return "";
+}
+
+Level FromFileString(const std::string& lvl)
+{
+    if ( lvl == ToString(Level::Beginner) ) {
+        return Level::Beginner;
+    }
+    else if ( lvl == ToString(Level::Medium) ) {
+        return Level::Medium;
+    }
+    else if ( lvl == ToString(Level::Advanced) ) {
+        return Level::Advanced;
+    }
+
+    // invalid input really...
+    throw std::invalid_argument { "Invalid input string: " + lvl };
+
+    return Level::Medium;
+}
+
+Level FromInputString(const std::string& lvl)
+{
+    if ( lvl == "1" ) {
+        return Level::Beginner;
+    }
+    else if ( lvl == "2" ) {
+        return Level::Medium;
+    }
+    else if ( lvl == "3" ) {
+        return Level::Advanced;
+    }
+
+    // invalid input really...
+    throw std::invalid_argument { "Invalid input string: " + lvl };
+
+    return Level::Medium;
+}
+
+const std::vector<Level>& AllLevels()
+{
+    static const std::vector<Level> levels { Level::Beginner, Level::Medium, Level::Advanced };
+    return levels;
+}
+
 std::vector<Player> ParsePlayersFromFile()
 {
     std::ifstream input { "highest_scores.txt" };
@@ -15,11 +72,27 @@ std::vector<Player> ParsePlayersFromFile()
 
     while( std::getline(input, line) ) {
         std::stringstream ss { line };
-        std::string u;
-        size_t highest_score;
-        ss >> u >> highest_score;
+        std::string username;
+        ss >> username;
 
-        players.emplace_back(std::move(u), highest_score);
+        std::map<Level, size_t> highest_scores;
+        std::regex lvl_score_regex { "[a-z]+:[0-9]+" };
+
+        for ( std::string lvl_score = ""; ss >> lvl_score; lvl_score ) {
+            if ( !std::regex_match(lvl_score, lvl_score_regex) ) {
+                continue;
+            }
+
+            std::replace(std::begin(lvl_score), std::end(lvl_score), ':', ' ');
+
+            std::istringstream lvl_score_ss { lvl_score };
+            std::string lvl;
+            size_t score;
+            lvl_score_ss >> lvl >> score;
+            highest_scores[FromFileString(lvl)] = score;
+        }
+
+        players.emplace_back(std::move(username), std::move(highest_scores));
     }
 
     return players;
@@ -28,9 +101,16 @@ std::vector<Player> ParsePlayersFromFile()
 void PersistPlayersToFile(const std::vector<Player>& players)
 {
     std::ofstream input { "highest_scores.txt" };
+    const auto& levels = AllLevels();
 
     for(const auto& p : players) {
-        input << p.Username() << " " << p.HighestScore() << std::endl;
+        // format in the following way:
+        // beginner:<score_value> medium:<score_value> advanced:<score_value>
+        std::stringstream ss;
+        for(const auto& lvl : levels) {
+            ss << ToString(lvl) << ":" << p.HighestScore(lvl) << " ";
+        }
+        input << p.Username() << " " << ss.str() << std::endl;
     }
 }
 
@@ -64,24 +144,31 @@ Player Player::CreatePlayer()
 Player::Player(std::string&& username)
     : username { std::move(username) } {}
 
-Player::Player(std::string&& username, size_t highest_score)
+Player::Player(std::string&& username, std::map<Level, size_t>&& highest_scores)
     : username { std::move(username) },
-      highest_score { highest_score } {}
+      highest_scores { std::move(highest_scores) } {}
 
 const std::string& Player::Username() const
 {
     return username;
 }
 
-size_t Player::HighestScore() const
+size_t Player::HighestScore(Level lvl) const
 {
-    return highest_score;
+    if ( highest_scores.find(lvl) == std::end(highest_scores) ) {
+        return 0u;
+    }
+
+    return highest_scores.at(lvl);
 }
 
-void Player::UpdateHighestScore(size_t new_score)
+void Player::UpdateHighestScore(Level lvl, size_t new_score)
 {
-    if ( new_score > highest_score ) {
-        highest_score = new_score;
+    if ( highest_scores.find(lvl) == std::end(highest_scores) ) {
+        highest_scores[lvl] = new_score;
+    }
+    else if ( new_score > highest_scores[lvl] ) {
+        highest_scores[lvl] = new_score;
     }
 }
 
@@ -90,12 +177,17 @@ void Player::PersistHighestScore()
     bool score_updated = false;
 
     auto players = ParsePlayersFromFile();
+    const auto& levels = AllLevels();
+
     for(auto& p : players) {
         if ( p.Username() == username ) {
-            // maybe the highest score in file is now obsolete
-            // and thus we try to update it here...
-            p.UpdateHighestScore(highest_score);
-            score_updated = true;
+            for(const auto& lvl : levels) {
+                // maybe the highest score in file is now obsolete
+                // and thus we try to update it here...
+                const auto curr_score = HighestScore(lvl);
+                p.UpdateHighestScore(lvl, curr_score);
+                score_updated = true;
+            }
         }
     }
 
@@ -108,7 +200,15 @@ void Player::PersistHighestScore()
     PersistPlayersToFile(players);
 }
 
+// sort first according to the highest score for beginner then medium then advanced level
 bool operator<(const Player& left, const Player& right)
 {
-    return left.HighestScore() < right.HighestScore();
+    const auto& levels = AllLevels();
+    for(const auto& lvl : levels) {
+        if ( left.HighestScore(lvl) != right.HighestScore(lvl) ) {
+            return left.HighestScore(lvl) < right.HighestScore(lvl);
+        }
+    }
+
+    return false;
 }

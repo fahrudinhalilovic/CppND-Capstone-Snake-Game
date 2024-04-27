@@ -1,6 +1,25 @@
 #include "game.h"
 #include <iostream>
+#include <regex>
 #include "SDL.h"
+
+Level InputGameLevel()
+{
+    std::cout << "Please provide level of the game (1=beginner, 2=medium, 3=advanced):" << std::endl;
+    std::regex regex { "[1-3]" };
+    std::string input;
+
+    while( std::getline(std::cin, input) ) {
+        if ( std::regex_match(input, regex) ) {
+            return FromInputString(input);
+        }
+        else {
+          std::cerr << "Please provide one of the following: 1, 2 or 3!" << std::endl;
+        }
+    }
+
+    return Level::Medium;
+}
 
 Game::Game(Player p, std::size_t grid_width, std::size_t grid_height)
     : player { std::move(p) },
@@ -20,12 +39,14 @@ void Game::Run(Controller const &controller, Renderer &renderer,
   int frame_count = 0;
   bool running = true;
 
+  auto lvl = InputGameLevel();
+
   while (running) {
     frame_start = SDL_GetTicks();
 
     // Input, Update, Render - the main game loop.
     controller.HandleInput(running, snake);
-    Update();
+    Update(lvl);
     renderer.Render(snake, food);
 
     frame_end = SDL_GetTicks();
@@ -69,7 +90,7 @@ void Game::PlaceFood() {
   }
 }
 
-void Game::Update() {
+void Game::Update(Level lvl) {
   if (!snake.alive) return;
 
   snake.Update();
@@ -79,7 +100,7 @@ void Game::Update() {
 
   // Check if there's food over here
   if (food.x == new_x && food.y == new_y) {
-    player.UpdateHighestScore(++score);
+    player.UpdateHighestScore(lvl, ++score);
     PlaceFood();
     // Grow snake and increase speed.
     snake.GrowBody();
