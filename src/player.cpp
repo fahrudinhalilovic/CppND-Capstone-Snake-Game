@@ -66,21 +66,7 @@ Player::Player(std::string&& username)
 
 Player::Player(std::string&& username, size_t highest_score)
     : username { std::move(username) },
-    highest_score { highest_score } {}
-
-Player::~Player()
-{
-    auto players = ParsePlayersFromFile();
-    for(auto& p : players) {
-        if ( p.Username() == username ) {
-            // maybe the highest score in file is now obsolete
-            // and thus we try to update it here...
-            p.UpdateHighestScore(highest_score);
-        }
-    }
-
-    PersistPlayersToFile(players);
-}
+      highest_score { highest_score } {}
 
 const std::string& Player::Username() const
 {
@@ -97,6 +83,29 @@ void Player::UpdateHighestScore(size_t new_score)
     if ( new_score > highest_score ) {
         highest_score = new_score;
     }
+}
+
+void Player::PersistHighestScore()
+{
+    bool score_updated = false;
+
+    auto players = ParsePlayersFromFile();
+    for(auto& p : players) {
+        if ( p.Username() == username ) {
+            // maybe the highest score in file is now obsolete
+            // and thus we try to update it here...
+            p.UpdateHighestScore(highest_score);
+            score_updated = true;
+        }
+    }
+
+    if ( !score_updated ) {
+        // this player did not play before
+        // so we have to persist for him as well
+        players.emplace_back(*this);
+    }
+
+    PersistPlayersToFile(players);
 }
 
 bool operator<(const Player& left, const Player& right)

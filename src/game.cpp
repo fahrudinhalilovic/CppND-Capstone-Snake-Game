@@ -2,8 +2,9 @@
 #include <iostream>
 #include "SDL.h"
 
-Game::Game(std::size_t grid_width, std::size_t grid_height)
-    : snake(grid_width, grid_height),
+Game::Game(Player p, std::size_t grid_width, std::size_t grid_height)
+    : player { std::move(p) },
+      snake(grid_width, grid_height),
       engine(dev()),
       random_w(0, static_cast<int>(grid_width - 1)),
       random_h(0, static_cast<int>(grid_height - 1)) {
@@ -36,7 +37,7 @@ void Game::Run(Controller const &controller, Renderer &renderer,
 
     // After every second, update the window title.
     if (frame_end - title_timestamp >= 1000) {
-      renderer.UpdateWindowTitle(score, frame_count);
+      renderer.UpdateWindowTitle(player.Username(), score, frame_count);
       frame_count = 0;
       title_timestamp = frame_end;
     }
@@ -48,6 +49,9 @@ void Game::Run(Controller const &controller, Renderer &renderer,
       SDL_Delay(target_frame_duration - frame_duration);
     }
   }
+
+  // save potentially new highest score to the file
+  player.PersistHighestScore();
 }
 
 void Game::PlaceFood() {
@@ -75,7 +79,7 @@ void Game::Update() {
 
   // Check if there's food over here
   if (food.x == new_x && food.y == new_y) {
-    score++;
+    player.UpdateHighestScore(++score);
     PlaceFood();
     // Grow snake and increase speed.
     snake.GrowBody();

@@ -2,6 +2,7 @@
 #define RENDERER_H
 
 #include <vector>
+#include <string>
 #include "SDL.h"
 #include "snake.h"
 
@@ -12,7 +13,7 @@ class Renderer {
   ~Renderer();
 
   void Render(Snake const snake, SDL_Point const &food);
-  void UpdateWindowTitle(int score, int fps);
+  void UpdateWindowTitle(const std::string& username, int score, int fps);
 
  private:
   SDL_Window *sdl_window;
