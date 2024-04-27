@@ -6,16 +6,19 @@
 class Player {
 
 public:
-    Player(std::string&& username);
+    explicit Player(std::string&& username);
+    Player(std::string&& username, size_t highest_score);
+    ~Player();
 
+    const std::string& Username() const;
     size_t HighestScore() const;
+    void UpdateHighestScore(size_t new_score);
 
-private:
-    static size_t ParseHighestScoresFromFile(const std::string& username);
+    static Player CreatePlayer();
 
 private:
     std::string username;
-    size_t highest_score;
+    size_t highest_score = 0;
 };
 
 
