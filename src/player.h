@@ -5,16 +5,7 @@
 #include <vector>
 #include <map>
 
-enum class Level {
-    Beginner,
-    Medium,
-    Advanced
-};
-
-std::string ToString(Level lvl);
-Level FromFileString(const std::string& lvl);
-Level FromInputString(const std::string& lvl);
-const std::vector<Level>& AllLevels();
+#include "level.h"
 
 class Player {
 
