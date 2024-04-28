@@ -104,7 +104,15 @@ void Game::PlaceObstacle(const ObstaclesGenerator::SPtr& generator)
     return;
   }
 
+  size_t cnt = 0u;
   while ( !CanPlaceObstacle(obstacle.value()) ) {
+    if ( ++cnt >= 10u ) {
+      // if we need more than like 10 tries to get new obstacle
+      // then density of the obstacles on the playground is
+      // probably too high - thus we skip generating now
+      // and try once again after certain time period
+      return;
+    }
     obstacle = generator->CreateObstacle();
   }
 
