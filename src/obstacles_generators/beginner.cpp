@@ -1,7 +1,7 @@
 #include "beginner.h"
 
-void BeginnerObstaclesGenerator::CreateObstacle(size_t snake_x, size_t snake_y)
+std::optional<SDL_Point> BeginnerObstaclesGenerator::CreateObstacle() const
 {
     // for beginner level simply return - i.e. do NOT do anything really...
-    return;
+    return std::nullopt;
 }

@@ -2,8 +2,12 @@
 #define OBSTACLES_GENERATOR
 
 #include <memory>
+#include <optional>
 
 #include "level.h"
+#include "SDL.h"
+
+class Snake;
 
 class ObstaclesGenerator
 {
@@ -12,10 +16,9 @@ public:
 
     virtual ~ObstaclesGenerator() = default;
 
-    virtual void CreateObstacle(size_t snake_x, size_t snake_y) = 0;
+    virtual std::optional<SDL_Point> CreateObstacle() const = 0;
 
-    static SPtr CreateObstaclesGenerator(Level lvl);
+    static SPtr CreateObstaclesGenerator(Level lvl, size_t grid_width, size_t grid_height, const Snake& s);
 };
-
 
 #endif

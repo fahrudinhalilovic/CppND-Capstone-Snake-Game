@@ -8,7 +8,7 @@ class BeginnerObstaclesGenerator : public ObstaclesGenerator
 public:
     BeginnerObstaclesGenerator() = default;
 
-    void CreateObstacle(size_t snake_x, size_t snake_y) override;
+    std::optional<SDL_Point> CreateObstacle() const override;
 };
 
 #endif

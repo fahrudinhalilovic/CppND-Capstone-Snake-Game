@@ -2,7 +2,7 @@
 #include <cmath>
 #include <iostream>
 
-void Snake::Update() {
+void Snake::Update(const std::vector<SDL_Point>& obstacles) {
   SDL_Point prev_cell{
       static_cast<int>(head_x),
       static_cast<int>(
@@ -15,7 +15,7 @@ void Snake::Update() {
   // Update all of the body vector items if the snake head has moved to a new
   // cell.
   if (current_cell.x != prev_cell.x || current_cell.y != prev_cell.y) {
-    UpdateBody(current_cell, prev_cell);
+    UpdateBody(current_cell, prev_cell, obstacles);
   }
 }
 
@@ -43,7 +43,7 @@ void Snake::UpdateHead() {
   head_y = fmod(head_y + grid_height, grid_height);
 }
 
-void Snake::UpdateBody(SDL_Point &current_head_cell, SDL_Point &prev_head_cell) {
+void Snake::UpdateBody(SDL_Point &current_head_cell, SDL_Point &prev_head_cell, const std::vector<SDL_Point>& obstacles) {
   // Add previous head location to vector
   body.push_back(prev_head_cell);
 
@@ -58,6 +58,12 @@ void Snake::UpdateBody(SDL_Point &current_head_cell, SDL_Point &prev_head_cell) 
   // Check if the snake has died.
   for (auto const &item : body) {
     if (current_head_cell.x == item.x && current_head_cell.y == item.y) {
+      alive = false;
+    }
+  }
+  // Check if snake hit the obstacle.
+  for(const auto& o : obstacles) {
+    if ( current_head_cell.x == o.x && current_head_cell.y == o.y ) {
       alive = false;
     }
   }

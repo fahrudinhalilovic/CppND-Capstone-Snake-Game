@@ -1,5 +1,5 @@
-#ifndef BEGINNER_OBSTACLES_GENERATOR
-#define BEGINNER_OBSTACLES_GENERATOR
+#ifndef MEDIUM_OBSTACLES_GENERATOR
+#define MEDIUM_OBSTACLES_GENERATOR
 
 #include <random>
 
@@ -8,15 +8,13 @@
 class MediumObstaclesGenerator : public ObstaclesGenerator
 {
 public:
-    MediumObstaclesGenerator(size_t grid_width, size_t grid_height);
+    MediumObstaclesGenerator(size_t grid_w, size_t grid_h);
 
-    void CreateObstacle(size_t snake_x, size_t snake_y) override;
+    std::optional<SDL_Point> CreateObstacle() const override;
 
 private:
-    std::random_device dev;
-    std::mt19937 engine;
-    std::uniform_int_distribution<int> random_w;
-    std::uniform_int_distribution<int> random_h;
+    size_t grid_width;
+    size_t grid_height;
 };
 
 #endif

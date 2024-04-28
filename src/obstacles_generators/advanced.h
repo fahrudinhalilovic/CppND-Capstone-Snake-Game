@@ -1,5 +1,5 @@
-#ifndef BEGINNER_OBSTACLES_GENERATOR
-#define BEGINNER_OBSTACLES_GENERATOR
+#ifndef ADVANCED_OBSTACLES_GENERATOR
+#define ADVANCED_OBSTACLES_GENERATOR
 
 #include <random>
 
@@ -8,16 +8,15 @@
 class AdvancedObstaclesGenerator : public ObstaclesGenerator
 {
 public:
-    AdvancedObstaclesGenerator(size_t grid_w, size_t grid_h);
+    AdvancedObstaclesGenerator(size_t grid_w, size_t grid_h, const Snake& s);
 
-    void CreateObstacle(size_t snake_x, size_t snake_y) override;
+    std::optional<SDL_Point> CreateObstacle() const override;
 
 private:
     size_t grid_width;
     size_t grid_height;
 
-    std::random_device dev;
-    std::mt19937 engine;
+    const Snake& snake;
 };
 
 #endif

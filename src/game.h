@@ -7,19 +7,23 @@
 #include "renderer.h"
 #include "snake.h"
 #include "player.h"
+#include "obstacles_generator.h"
 
 class Game {
  public:
-  Game(Player p, std::size_t grid_width, std::size_t grid_height);
+  Game(std::size_t grid_w, std::size_t grid_h, Player p);
   void Run(Controller const &controller, Renderer &renderer,
            std::size_t target_frame_duration);
   int GetScore() const;
   int GetSize() const;
 
  private:
+  size_t grid_width;
+  size_t grid_height;
   Player player;
   Snake snake;
   SDL_Point food;
+  std::vector<SDL_Point> obstacles;
 
   std::random_device dev;
   std::mt19937 engine;
@@ -29,7 +33,9 @@ class Game {
   int score{0};
 
   void PlaceFood();
-  void Update(Level lvl);
+  void PlaceObstacle(const ObstaclesGenerator::SPtr& generator);
+  bool CanPlaceObstacle(const SDL_Point& point);
+  void Update(Level lvl, const ObstaclesGenerator::SPtr& generator);
 };
 
 #endif
