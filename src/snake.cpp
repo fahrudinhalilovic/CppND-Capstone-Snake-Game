@@ -3,17 +3,20 @@
 #include <iostream>
 
 void Snake::Update(const std::vector<SDL_Point>& obstacles) {
-  SDL_Point prev_cell{
+  // We first capture the head's cell before updating.
+  SDL_Point prev_cell {
       static_cast<int>(head_x),
-      static_cast<int>(
-          head_y)};  // We first capture the head's cell before updating.
-  UpdateHead();
-  SDL_Point current_cell{
-      static_cast<int>(head_x),
-      static_cast<int>(head_y)};  // Capture the head's cell after updating.
+      static_cast<int>(head_y)
+  };
 
-  // Update all of the body vector items if the snake head has moved to a new
-  // cell.
+  UpdateHead();
+
+  // Capture the head's cell after updating.
+  SDL_Point current_cell {
+      static_cast<int>(head_x),
+      static_cast<int>(head_y)};
+
+  // Update all of the body vector items if the snake head has moved to a new cell.
   if (current_cell.x != prev_cell.x || current_cell.y != prev_cell.y) {
     UpdateBody(current_cell, prev_cell, obstacles);
   }
@@ -61,7 +64,7 @@ void Snake::UpdateBody(SDL_Point &current_head_cell, SDL_Point &prev_head_cell, 
       alive = false;
     }
   }
-  // Check if snake hit the obstacle.
+  // Check if the snake hit the obstacle.
   for(const auto& o : obstacles) {
     if ( current_head_cell.x == o.x && current_head_cell.y == o.y ) {
       alive = false;

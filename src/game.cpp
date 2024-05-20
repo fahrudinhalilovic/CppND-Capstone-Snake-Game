@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <regex>
+#include <thread>
 
 #include "SDL.h"
 
@@ -45,15 +46,24 @@ void Game::Run(Controller const &controller, Renderer &renderer,
   bool running = true;
 
   auto lvl = InputGameLevel();
-  auto obstacles_generator = ObstaclesGenerator::CreateObstaclesGenerator(lvl, grid_width, grid_height,snake);
+  auto obstacles_generator = ObstaclesGenerator::CreateObstaclesGenerator(lvl, grid_width, grid_height, snake);
+
+  std::thread obstacles_thread { &Game::PlaceObstacle, this, std::move(obstacles_generator) };
 
   while (running) {
     frame_start = SDL_GetTicks();
 
     // Input, Update, Render - the main game loop.
     controller.HandleInput(running, snake);
-    Update(lvl, obstacles_generator);
+    Update(lvl);
+
+    std::unique_lock obstacles_lock { obstacles_mutex };
+    std::unique_lock food_lock { food_mutex };
+    std::unique_lock snake_lock { snake_mutex };
     renderer.Render(snake, food, obstacles);
+    obstacles_lock.unlock();
+    food_lock.unlock();
+    snake_lock.unlock();
 
     frame_end = SDL_GetTicks();
 
@@ -77,6 +87,9 @@ void Game::Run(Controller const &controller, Renderer &renderer,
     }
   }
 
+  // game stopped, so stop the thread for creating obstacles too
+  obstacles_thread.join();
+
   // save potentially new highest score to the file
   player.PersistHighestScore();
 }
@@ -86,9 +99,8 @@ void Game::PlaceFood() {
   while (true) {
     x = random_w(engine);
     y = random_h(engine);
-    // Check that the location is not occupied by a snake item before placing
-    // food.
-    if (!snake.SnakeCell(x, y)) {
+    // Check that the location is not occupied by some of the obstacles or by the snake
+    if ( !IsOccupiedByObstacles(SDL_Point {x, y}) && !snake.SnakeCell(x, y) ) {
       food.x = x;
       food.y = y;
       return;
@@ -96,36 +108,69 @@ void Game::PlaceFood() {
   }
 }
 
-void Game::PlaceObstacle(const ObstaclesGenerator::SPtr& generator)
+void Game::PlaceObstacle(ObstaclesGenerator::SPtr generator)
 {
-  auto obstacle = generator->CreateObstacle();
-  if ( !obstacle ) {
-    // for beginner level we do not even generate obstacles...
-    return;
-  }
-
-  size_t cnt = 0u;
-  while ( !CanPlaceObstacle(obstacle.value()) ) {
-    if ( ++cnt >= 10u ) {
-      // if we need more than like 10 tries to get new obstacle
-      // then density of the obstacles on the playground is
-      // probably too high - thus we skip generating now
-      // and try once again after certain time period
+  while ( true ) {
+    std::unique_lock snake_lock { snake_mutex };
+    if ( !snake.alive ) {
       return;
     }
-    obstacle = generator->CreateObstacle();
-  }
+    snake_lock.unlock();
 
-  obstacles.emplace_back(std::move(*obstacle));
+    auto cnt = 0u;
+    auto obstacle_generated = true;
+    auto obstacle = generator->CreateObstacle();
+
+    if ( !obstacle ) {
+      // for beginner level we do not even generate obstacles...
+      obstacle_generated = false;
+    }
+
+    while ( obstacle_generated && !CanPlaceObstacle(*obstacle) ) {
+      if ( ++cnt >= 10u ) {
+        // if we need more than 10 tries to get new obstacle
+        // then density of the obstacles on the playground is
+        // probably too high - thus we skip generating now
+        // and try once again after certain time period
+        obstacle_generated = false;
+      }
+      obstacle = generator->CreateObstacle();
+    }
+
+    if ( obstacle_generated ) {
+      std::lock_guard obstacles_lock { obstacles_mutex };
+      obstacles.emplace_back(std::move(*obstacle));
+    }
+
+    // pause for 4s before creating a new obstacle
+    SDL_Delay(4000u);
+  }
+}
+
+bool Game::IsOccupiedByObstacles(const SDL_Point& point)
+{
+    std::lock_guard obstacles_lock { obstacles_mutex };
+
+    // check if another obstacle occupied this place
+    for(const auto& o : obstacles) {
+      if ( o.x == point.x && o.y == point.y ) {
+        return true;
+      }
+    }
+
+    return false;
 }
 
 bool Game::CanPlaceObstacle(const SDL_Point& point)
 {
+    std::unique_lock food_lock { food_mutex };
     // check if food occupied this place
     if ( food.x == point.x && food.y == point.y ) {
       return false;
     }
+    food_lock.unlock();
 
+    std::unique_lock snake_lock { snake_mutex };
     // check if snake occupied this place
     if ( snake.SnakeCell(point.x, point.y) ) {
       return false;
@@ -142,25 +187,32 @@ bool Game::CanPlaceObstacle(const SDL_Point& point)
       return false;
     }
 
-    // check if another obstacle occupied this place
-    for(const auto& o : obstacles) {
-      if ( o.x == point.x && o.y == point.y ) {
-        return false;
-      }
+    // end of section for checking snake - unlock it now
+    snake_lock.unlock();
+
+    if ( IsOccupiedByObstacles(point) ) {
+      return false;
     }
 
-    // otherwise, this place is free so put new obstacle here
+    // otherwise, this place is free so put the new obstacle here
     return true;
 }
 
-void Game::Update(Level lvl, const ObstaclesGenerator::SPtr& generator) {
+void Game::Update(Level lvl) {
+  // snake is used through entire method so lock it
+  // until the end of the method...
+  std::lock_guard snake_lock { snake_mutex };
+
   if (!snake.alive) return;
 
+  std::unique_lock obstacles_lock { obstacles_mutex };
   snake.Update(obstacles);
+  obstacles_lock.unlock();
 
   int new_x = static_cast<int>(snake.head_x);
   int new_y = static_cast<int>(snake.head_y);
 
+  std::lock_guard food_lock { food_mutex };
   // Check if there's food over here
   if (food.x == new_x && food.y == new_y) {
     player.UpdateHighestScore(lvl, ++score);
@@ -169,15 +221,10 @@ void Game::Update(Level lvl, const ObstaclesGenerator::SPtr& generator) {
     snake.GrowBody();
     snake.speed += 0.02;
   }
-
-  static Uint32 last_update = SDL_GetTicks();
-  Uint32 curr = SDL_GetTicks();
-  // generate new obstacle every 4sec...
-  if ( curr - last_update > 4000 ) {
-    last_update = SDL_GetTicks();
-    PlaceObstacle(generator);
-  }
 }
 
 int Game::GetScore() const { return score; }
-int Game::GetSize() const { return snake.size; }
+int Game::GetSize() {
+  std::lock_guard snake_lock { snake_mutex };
+  return snake.size;
+}
