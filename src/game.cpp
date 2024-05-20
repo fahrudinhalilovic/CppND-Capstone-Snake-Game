@@ -110,6 +110,9 @@ void Game::PlaceFood() {
 void Game::PlaceObstacle(ObstaclesGenerator::SPtr generator)
 {
   while ( true ) {
+    // pause for 4s before creating a new obstacle
+    SDL_Delay(4000u);
+
     std::unique_lock snake_lock { snake_mutex };
     if ( !snake.alive ) {
       return;
@@ -140,9 +143,6 @@ void Game::PlaceObstacle(ObstaclesGenerator::SPtr generator)
       std::lock_guard obstacles_lock { obstacles_mutex };
       obstacles.emplace_back(std::move(*obstacle));
     }
-
-    // pause for 4s before creating a new obstacle
-    SDL_Delay(4000u);
   }
 }
 
