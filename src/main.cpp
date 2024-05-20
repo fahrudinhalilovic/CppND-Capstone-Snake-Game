@@ -13,11 +13,12 @@ int main() {
   constexpr std::size_t kGridHeight{32};
 
   Player p = Player::CreatePlayer();
+  auto lvl = InputGameLevel();
 
   Renderer renderer(kScreenWidth, kScreenHeight, kGridWidth, kGridHeight);
   Controller controller;
   Game game(kGridWidth, kGridHeight, std::move(p));
-  game.Run(controller, renderer, kMsPerFrame);
+  game.Run(controller, renderer, kMsPerFrame, lvl);
   std::cout << "Game has terminated successfully!\n";
   std::cout << "Score: " << game.GetScore() << "\n";
   std::cout << "Size: " << game.GetSize() << "\n";

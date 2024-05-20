@@ -37,7 +37,7 @@ Game::Game(std::size_t grid_w, std::size_t grid_h, Player p)
 }
 
 void Game::Run(Controller const &controller, Renderer &renderer,
-               std::size_t target_frame_duration) {
+               std::size_t target_frame_duration, Level lvl) {
   Uint32 title_timestamp = SDL_GetTicks();
   Uint32 frame_start;
   Uint32 frame_end;
@@ -45,7 +45,6 @@ void Game::Run(Controller const &controller, Renderer &renderer,
   int frame_count = 0;
   bool running = true;
 
-  auto lvl = InputGameLevel();
   auto obstacles_generator = ObstaclesGenerator::CreateObstaclesGenerator(lvl, grid_width, grid_height, snake);
 
   std::thread obstacles_thread { &Game::PlaceObstacle, this, std::move(obstacles_generator) };
