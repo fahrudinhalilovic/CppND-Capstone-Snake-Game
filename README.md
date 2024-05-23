@@ -31,6 +31,36 @@ In this project, you can build your own C++ application or extend this Snake gam
 4. Run it: `./SnakeGame`.
 
 
+## Introduced features to the project
+
+* Obtaining and verifying username from console input and then creating Player class instance.
+* Obtaining and verifying game level from console input. There are  the 3 levels available: beginner, intermediate and advanced. User must select one of these 3 levels upon selection of the username.
+* Maintaining high scores list for every user per level in highest_scores.txt file. Example of the content for this file:
+James beginner:9 medium:10 advanced:8
+Fabian beginner:0 medium:8 advanced:6
+* For intermediate and advanced levels, obstacles are generated to make game more challenging.
+** For beginner level, no obstacles are generated at all.
+** For intermediate level, obstacles are randomly generated.
+** For advanced level, obstacles are generated in front of the snake.
+
+## Required rubric points
+
+* Loops, Functions, I/O
+** Using different types of loops throughout entire program.
+** Opening, reading and parsing highest_scores.txt file.
+** Accepting and veryfing user input (for username and game level).
+* Object Oriented Programming
+** Following new classes have been introduced: Player, ObstaclesGenerator, BeginnerObstaclesGenerator, MediumObstaclesGenerator and AdvancedObstaclesGenerator.
+** Classes like Player, MediumObstaclesGenerator and AdvancedObstaclesGenerator utilize member initialization lists to initialize their members.
+** ObstaclesGenerator represents base class (interface) which is inherited (implemented) by the BeginnerObstaclesGenerator, MediumObstaclesGenerator and AdvancedObstaclesGenerator.
+* Memory Management
+** Using references in function declarations: in a function PersistPlayersToFile, vector of Players is passed by const ref to avoid expensive copy.
+** On multiple ocassions std::move is used to move data instead of copying them (e.g. constructor of the Player class)
+** To achieve polymorphism and execute correct version of the ObstaclesGenerator::CreateObstacle method, smart pointers are used and they are created inside the factory function ObstaclesGenerator::CreateObstaclesGenerator.
+* Concurrency
+** New thread for generating obstacles has been introduced.
+** Since the main and newly introduced thread for generating obstacles share some data (food, snake, obstacles) mutexes are used to protect access to these shared resources from these 2 threads simultaneously.
+
 ## CC Attribution-ShareAlike 4.0 International
 
 
