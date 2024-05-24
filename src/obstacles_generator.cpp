@@ -4,7 +4,7 @@
 #include "obstacles_generators/medium.h"
 #include "obstacles_generators/advanced.h"
 
-ObstaclesGenerator::SPtr ObstaclesGenerator::CreateObstaclesGenerator(Level lvl, size_t grid_width, size_t grid_height, const Snake& s)
+ObstaclesGenerator::SPtr ObstaclesGenerator::ObstaclesFactory(Level lvl, size_t grid_width, size_t grid_height, const Snake& s)
 {
     switch ( lvl ) {
         case Level::Beginner:

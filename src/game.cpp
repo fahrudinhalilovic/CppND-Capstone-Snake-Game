@@ -45,7 +45,7 @@ void Game::Run(Controller const &controller, Renderer &renderer,
   int frame_count = 0;
   bool running = true;
 
-  auto obstacles_generator = ObstaclesGenerator::CreateObstaclesGenerator(lvl, grid_width, grid_height, snake);
+  auto obstacles_generator = ObstaclesGenerator::ObstaclesFactory(lvl, grid_width, grid_height, snake);
 
   std::thread obstacles_thread { &Game::PlaceObstacle, this, std::move(obstacles_generator) };
 

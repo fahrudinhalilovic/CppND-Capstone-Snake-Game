@@ -18,7 +18,7 @@ public:
 
     virtual std::optional<SDL_Point> CreateObstacle() const = 0;
 
-    static SPtr CreateObstaclesGenerator(Level lvl, size_t grid_width, size_t grid_height, const Snake& s);
+    static SPtr ObstaclesFactory(Level lvl, size_t grid_width, size_t grid_height, const Snake& s);
 };
 
 #endif

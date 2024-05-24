@@ -119,7 +119,6 @@ void Player::PersistHighestScoresToFile(Level lvl)
 {
     auto player_found = false;
     auto players = ParsePlayersFromFile();
-    const auto& levels = AllLevels();
 
     for(auto& p : players) {
         if ( p.Username() == username ) {
@@ -129,7 +128,7 @@ void Player::PersistHighestScoresToFile(Level lvl)
             const auto score_from_the_game = HighestScore(lvl);
             const auto score_from_the_file = p.HighestScore(lvl);
             if ( score_from_the_file < score_from_the_game ) {
-                std::cout << "You have a new personal record (" << ToString(lvl) << ") " << score_from_the_game << std::endl;
+                std::cout << "You have a new personal record (" << ToString(lvl) << "): " << score_from_the_game << std::endl;
                 p.UpdateHighestScore(lvl, score_from_the_game);
             }
         }
