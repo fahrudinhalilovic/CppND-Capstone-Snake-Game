@@ -90,7 +90,7 @@ void Game::Run(Controller const &controller, Renderer &renderer,
   obstacles_thread.join();
 
   // save potentially new highest score to the file
-  player.PersistHighestScore();
+  player.PersistHighestScoresToFile(lvl);
 }
 
 void Game::PlaceFood() {

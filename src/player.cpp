@@ -84,10 +84,10 @@ Player Player::CreatePlayer()
     return Player { std::move(input) };
 }
 
-Player::Player(std::string&& username)
+Player::Player(std::string username)
     : username { std::move(username) } {}
 
-Player::Player(std::string&& username, std::map<Level, size_t>&& highest_scores)
+Player::Player(std::string username, std::map<Level, size_t> highest_scores)
     : username { std::move(username) },
       highest_scores { std::move(highest_scores) } {}
 
@@ -115,43 +115,31 @@ void Player::UpdateHighestScore(Level lvl, size_t new_score)
     }
 }
 
-void Player::PersistHighestScore()
+void Player::PersistHighestScoresToFile(Level lvl)
 {
-    bool score_updated = false;
-
+    auto player_found = false;
     auto players = ParsePlayersFromFile();
     const auto& levels = AllLevels();
 
     for(auto& p : players) {
         if ( p.Username() == username ) {
-            for(const auto& lvl : levels) {
-                // maybe the highest score in file is now obsolete
-                // and thus we try to update it here...
-                const auto curr_score = HighestScore(lvl);
-                p.UpdateHighestScore(lvl, curr_score);
-                score_updated = true;
+            player_found = true;
+            // maybe the highest score from the file is now obsolete
+            // thus we try to update it with the latest score from the game
+            const auto score_from_the_game = HighestScore(lvl);
+            const auto score_from_the_file = p.HighestScore(lvl);
+            if ( score_from_the_file < score_from_the_game ) {
+                std::cout << "You have a new personal record (" << ToString(lvl) << ") " << score_from_the_game << std::endl;
+                p.UpdateHighestScore(lvl, score_from_the_game);
             }
         }
     }
 
-    if ( !score_updated ) {
+    if ( !player_found ) {
         // this player did not play before
-        // so we have to persist for him as well
+        // so we have to persist him as well
         players.emplace_back(*this);
     }
 
     PersistPlayersToFile(players);
-}
-
-// sort first according to the highest score for beginner then medium then advanced level
-bool operator<(const Player& left, const Player& right)
-{
-    const auto& levels = AllLevels();
-    for(const auto& lvl : levels) {
-        if ( left.HighestScore(lvl) != right.HighestScore(lvl) ) {
-            return left.HighestScore(lvl) < right.HighestScore(lvl);
-        }
-    }
-
-    return false;
 }
