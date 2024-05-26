@@ -23,12 +23,14 @@ class Game {
   int GetSize();
 
  private:
+  bool running = true;
   size_t grid_width;
   size_t grid_height;
   Player player;
   Snake snake;
   SDL_Point food;
   std::vector<SDL_Point> obstacles;
+  std::mutex running_flag_mutex;
   std::mutex obstacles_mutex;
   std::mutex snake_mutex;
   std::mutex food_mutex;

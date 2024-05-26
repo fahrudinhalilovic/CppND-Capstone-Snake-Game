@@ -43,7 +43,6 @@ void Game::Run(Controller const &controller, Renderer &renderer,
   Uint32 frame_end;
   Uint32 frame_duration;
   int frame_count = 0;
-  bool running = true;
 
   auto obstacles_generator = ObstaclesGenerator::ObstaclesFactory(lvl, grid_width, grid_height, snake);
 
@@ -53,7 +52,11 @@ void Game::Run(Controller const &controller, Renderer &renderer,
     frame_start = SDL_GetTicks();
 
     // Input, Update, Render - the main game loop.
+
+    std::unique_lock running_flag_lock { running_flag_mutex };
     controller.HandleInput(running, snake);
+    running_flag_lock.unlock();
+
     Update(lvl);
 
     std::unique_lock obstacles_lock { obstacles_mutex };
@@ -112,6 +115,12 @@ void Game::PlaceObstacle(ObstaclesGenerator::SPtr generator)
   while ( true ) {
     // pause for 4s before creating a new obstacle
     SDL_Delay(4000u);
+
+    std::unique_lock running_flag_lock { running_flag_mutex };
+    if ( !running ) {
+      return;
+    }
+    running_flag_lock.unlock();
 
     std::unique_lock snake_lock { snake_mutex };
     if ( !snake.alive ) {
