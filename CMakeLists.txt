@@ -27,6 +27,8 @@ add_executable(
         src/obstacles_generators/beginner.cpp
         src/obstacles_generators/medium.cpp
         src/obstacles_generators/advanced.cpp
+        src/obstacles_generators/snake_hunter.h
+        src/obstacles_generators/snake_hunter.cpp
 )
 string(STRIP ${SDL2_LIBRARIES} SDL2_LIBRARIES)
 target_link_libraries(SnakeGame ${SDL2_LIBRARIES})

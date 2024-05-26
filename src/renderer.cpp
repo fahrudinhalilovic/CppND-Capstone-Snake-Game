@@ -39,7 +39,7 @@ Renderer::~Renderer() {
   SDL_Quit();
 }
 
-void Renderer::Render(Snake const snake, SDL_Point const &food, const std::vector<SDL_Point>& obstacles) {
+void Renderer::Render(Snake const snake, SDL_Point const &food, const std::vector<SDL_Point>& obstacles, const SnakeHunter& snake_hunter) {
   SDL_Rect block;
   block.w = screen_width / grid_width;
   block.h = screen_height / grid_height;
@@ -73,12 +73,33 @@ void Renderer::Render(Snake const snake, SDL_Point const &food, const std::vecto
   // Render snake's head
   block.x = static_cast<int>(snake.head_x) * block.w;
   block.y = static_cast<int>(snake.head_y) * block.h;
-  if (snake.alive) {
-    SDL_SetRenderDrawColor(sdl_renderer, 0x00, 0x7A, 0xCC, 0xFF);
-  } else {
-    SDL_SetRenderDrawColor(sdl_renderer, 0xFF, 0x00, 0x00, 0xFF);
-  }
+  SDL_SetRenderDrawColor(sdl_renderer, 0xFF, 0x00, 0x00, 0xFF);
   SDL_RenderFillRect(sdl_renderer, &block);
+
+  // Render snake hunter
+  SDL_SetRenderDrawColor(sdl_renderer, 255, 87, 51, 0xFF);
+  block.x = snake_hunter.CurrentPosition().x * block.w;
+  block.y = snake_hunter.CurrentPosition().y * block.h;
+  SDL_RenderFillRect(sdl_renderer, &block);
+
+  if (snake.alive) {
+    // red color when snake dies
+    SDL_SetRenderDrawColor(sdl_renderer, 0x00, 0x7A, 0xCC, 0xFF);
+
+    switch ( snake.FindDeathCause() ) {
+      case DeathCause::SelfMurder:
+      case DeathCause::HitTheObstacle:
+        block.x = static_cast<int>(snake.head_x) * block.w;
+        block.y = static_cast<int>(snake.head_y) * block.h;
+        break;
+      case DeathCause::CatchedBySnakeHunter:
+        block.x = snake_hunter.CurrentPosition().x * block.w;
+        block.y = snake_hunter.CurrentPosition().y * block.h;
+        break;
+    }
+
+    SDL_RenderFillRect(sdl_renderer, &block);
+  }
 
   // Update Screen
   SDL_RenderPresent(sdl_renderer);

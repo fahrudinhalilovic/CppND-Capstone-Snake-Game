@@ -4,6 +4,14 @@
 #include <vector>
 #include "SDL.h"
 
+class SnakeHunter;
+
+enum class DeathCause {
+  SelfMurder,
+  HitTheObstacle,
+  CatchedBySnakeHunter
+};
+
 class Snake {
  public:
   enum class Direction { kUp, kDown, kLeft, kRight };
@@ -14,10 +22,11 @@ class Snake {
         head_x(grid_width / 2),
         head_y(grid_height / 2) {}
 
-  void Update(const std::vector<SDL_Point>& obstacles);
+  void Update(const std::vector<SDL_Point>& obstacles, const SnakeHunter& snake_hunter);
 
   void GrowBody();
   bool SnakeCell(int x, int y);
+  DeathCause FindDeathCause() const;
 
   Direction direction = Direction::kUp;
 
@@ -30,11 +39,13 @@ class Snake {
 
  private:
   void UpdateHead();
-  void UpdateBody(SDL_Point &current_cell, SDL_Point &prev_cell, const std::vector<SDL_Point>& obstacles);
+  void UpdateBody(SDL_Point &current_cell, SDL_Point &prev_cell, const std::vector<SDL_Point>& obstacles,
+                  const SnakeHunter& snake_hunter);
 
   bool growing{false};
   int grid_width;
   int grid_height;
+  DeathCause death_cause;
 };
 
 #endif

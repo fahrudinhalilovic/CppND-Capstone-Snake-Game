@@ -30,6 +30,7 @@ Game::Game(std::size_t grid_w, std::size_t grid_h, Player p)
       grid_height { grid_h },
       player { std::move(p) },
       snake(grid_width, grid_height),
+      snake_hunter { grid_width, grid_height, snake },
       engine(dev()),
       random_w(0, static_cast<int>(grid_width - 1)),
       random_h(0, static_cast<int>(grid_height - 1)) {
@@ -62,10 +63,15 @@ void Game::Run(Controller const &controller, Renderer &renderer,
     std::unique_lock obstacles_lock { obstacles_mutex };
     std::unique_lock food_lock { food_mutex };
     std::unique_lock snake_lock { snake_mutex };
-    renderer.Render(snake, food, obstacles);
+    std::unique_lock snake_hunter_lock { snake_hunter_mutex };
+
+    snake_hunter.Hunt(obstacles, food);
+    renderer.Render(snake, food, obstacles, snake_hunter);
+
     obstacles_lock.unlock();
     food_lock.unlock();
     snake_lock.unlock();
+    snake_hunter_lock.unlock();
 
     frame_end = SDL_GetTicks();
 
@@ -102,7 +108,7 @@ void Game::PlaceFood() {
     x = random_w(engine);
     y = random_h(engine);
     // Check that the location is not occupied by some of the obstacles or by the snake
-    if ( !IsOccupiedByObstacles(SDL_Point {x, y}) && !snake.SnakeCell(x, y) ) {
+    if ( !IsOccupiedByObstacles(SDL_Point {x, y}) && !snake.SnakeCell(x, y) && !snake_hunter.SnakeHunterCell(x, y) ) {
       food.x = x;
       food.y = y;
       return;
@@ -184,7 +190,7 @@ bool Game::CanPlaceObstacle(const SDL_Point& point)
       return false;
     }
 
-    // check if snake is too close to this field
+    // check if snake's head is too close to this field
     auto x_diff = static_cast<size_t>(std::abs(snake.head_x - point.x));
     auto y_diff = static_cast<size_t>(std::abs(snake.head_y - point.y));
     auto total_diff = x_diff + y_diff;
@@ -202,6 +208,13 @@ bool Game::CanPlaceObstacle(const SDL_Point& point)
       return false;
     }
 
+    // check if the snake hunter is located here
+    std::unique_lock snake_hunter_lock { snake_hunter_mutex };
+    if ( snake_hunter.SnakeHunterCell(point.x, point.y) ) {
+      return false;
+    }
+    snake_hunter_lock.unlock();
+
     // otherwise, this place is free so put the new obstacle here
     return true;
 }
@@ -214,7 +227,9 @@ void Game::Update(Level lvl) {
   if (!snake.alive) return;
 
   std::unique_lock obstacles_lock { obstacles_mutex };
-  snake.Update(obstacles);
+  std::unique_lock snake_hunter_lock { snake_hunter_mutex };
+  snake.Update(obstacles, snake_hunter);
+  snake_hunter_lock.unlock();
   obstacles_lock.unlock();
 
   int new_x = static_cast<int>(snake.head_x);
@@ -224,7 +239,9 @@ void Game::Update(Level lvl) {
   // Check if there's food over here
   if (food.x == new_x && food.y == new_y) {
     player.UpdateHighestScore(lvl, ++score);
+    snake_hunter_lock.lock();
     PlaceFood();
+    snake_hunter_lock.unlock();
     // Grow snake and increase speed.
     snake.GrowBody();
     snake.speed += 0.02;

@@ -11,6 +11,7 @@
 #include "snake.h"
 #include "player.h"
 #include "obstacles_generator.h"
+#include "obstacles_generators/snake_hunter.h"
 
 Level InputGameLevel();
 
@@ -29,11 +30,13 @@ class Game {
   Player player;
   Snake snake;
   SDL_Point food;
+  SnakeHunter snake_hunter;
   std::vector<SDL_Point> obstacles;
   std::mutex running_flag_mutex;
   std::mutex obstacles_mutex;
   std::mutex snake_mutex;
   std::mutex food_mutex;
+  std::mutex snake_hunter_mutex;
 
   std::random_device dev;
   std::mt19937 engine;
