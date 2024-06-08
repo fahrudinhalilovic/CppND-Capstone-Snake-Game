@@ -9,7 +9,7 @@ SnakeHunter::SnakeHunter(size_t g_width, size_t g_height, const Snake& s)
       grid_height { g_height },
       snake { s },
       x { 0 },
-      y { grid_width / 2 }  {}
+      y { 0 }  {}
 
 void normalizePoint(size_t grid_height, size_t grid_width, int& x, int& y)
 {
