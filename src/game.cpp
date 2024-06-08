@@ -30,7 +30,7 @@ Game::Game(std::size_t grid_w, std::size_t grid_h, Player p)
       grid_height { grid_h },
       player { std::move(p) },
       snake(grid_width, grid_height),
-      snake_hunter { grid_width, grid_height, snake },
+      snake_hunter { grid_width, grid_height },
       engine(dev()),
       random_w(0, static_cast<int>(grid_width - 1)),
       random_h(0, static_cast<int>(grid_height - 1)) {
@@ -65,7 +65,7 @@ void Game::Run(Controller const &controller, Renderer &renderer,
     std::unique_lock snake_lock { snake_mutex };
     std::unique_lock snake_hunter_lock { snake_hunter_mutex };
 
-    snake_hunter.Hunt(obstacles, food);
+    snake_hunter.Hunt(snake, obstacles, food);
     renderer.Render(snake, food, obstacles, snake_hunter);
 
     obstacles_lock.unlock();

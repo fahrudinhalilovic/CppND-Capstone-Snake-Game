@@ -4,10 +4,9 @@
 #include <cassert>
 #include <iostream>
 
-SnakeHunter::SnakeHunter(size_t g_width, size_t g_height, const Snake& s)
+SnakeHunter::SnakeHunter(size_t g_width, size_t g_height)
     : grid_width { g_width },
       grid_height { g_height },
-      snake { s },
       x { 0 },
       y { 0 }  {}
 
@@ -19,7 +18,7 @@ void normalizePoint(size_t grid_height, size_t grid_width, int& x, int& y)
     y = std::fmod(y, grid_width);
 }
 
-void SnakeHunter::Hunt(const std::vector<SDL_Point>& obstacles, const SDL_Point& food)
+void SnakeHunter::Hunt(const Snake& snake, const std::vector<SDL_Point>& obstacles, const SDL_Point& food)
 {
     if ( !snake.alive ) {
         return;
@@ -62,7 +61,7 @@ void SnakeHunter::Hunt(const std::vector<SDL_Point>& obstacles, const SDL_Point&
                 reconstruction_site[new_pt.x][new_pt.y] = std::make_pair(x_movement[idx], y_movement[idx]);
                 // we found the closest path to the snake
                 snake_found = true;
-                reconstructPathFromSnakeToHunter(new_pt, field, reconstruction_site);
+                ReconstructPathFromSnakeToHunter(snake, new_pt, field, reconstruction_site);
                 break;
             }
             else if ( curr_field == FieldType::Food || curr_field == FieldType::Obstacle || curr_field == FieldType::SnakeHunter ) {
@@ -83,7 +82,8 @@ void SnakeHunter::Hunt(const std::vector<SDL_Point>& obstacles, const SDL_Point&
     }
 }
 
-void SnakeHunter::reconstructPathFromSnakeToHunter(const SDL_Point& intersection_pt,
+void SnakeHunter::ReconstructPathFromSnakeToHunter(const Snake& snake,
+                                                   const SDL_Point& intersection_pt,
                                                    const std::vector<std::vector<FieldType>>& field,
                                                    const ReconstructionSite& reconstruction_site)
 {

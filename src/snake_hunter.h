@@ -16,9 +16,9 @@ using ReconstructionSite = std::vector<std::vector<std::pair<int,int>>>;
 
 class SnakeHunter {
 public:
-    SnakeHunter(size_t grid_width, size_t grid_height, const Snake& s);
+    SnakeHunter(size_t grid_width, size_t grid_height);
 
-    void Hunt(const std::vector<SDL_Point>& obstacles, const SDL_Point& food);
+    void Hunt(const Snake& snake, const std::vector<SDL_Point>& obstacles, const SDL_Point& food);
 
     SDL_Point CurrentPosition() const;
 
@@ -26,7 +26,8 @@ public:
 
 private:
 
-    void reconstructPathFromSnakeToHunter(const SDL_Point& intersection_pt,
+    void ReconstructPathFromSnakeToHunter(const Snake& snake,
+                                          const SDL_Point& intersection_pt,
                                           const std::vector<std::vector<FieldType>>& field,
                                           const ReconstructionSite& reconstructionSite);
 
@@ -37,8 +38,6 @@ private:
     // location of the hunter
     double x;
     double y;
-
-    const Snake& snake;
 };
 
 #endif
