@@ -8,10 +8,7 @@
 
 #include "controller.h"
 #include "renderer.h"
-#include "snake.h"
-#include "player.h"
-#include "obstacles_generator.h"
-#include "snake_hunter.h"
+#include "game_resources.h"
 
 Level InputGameLevel();
 
@@ -27,28 +24,14 @@ class Game {
   bool running = true;
   size_t grid_width;
   size_t grid_height;
-  Player player;
-  Snake snake;
-  SDL_Point food;
-  SnakeHunter snake_hunter;
-  std::vector<SDL_Point> obstacles;
-  std::mutex running_flag_mutex;
-  std::mutex obstacles_mutex;
-  std::mutex snake_mutex;
-  std::mutex food_mutex;
-  std::mutex snake_hunter_mutex;
 
-  std::random_device dev;
-  std::mt19937 engine;
-  std::uniform_int_distribution<int> random_w;
-  std::uniform_int_distribution<int> random_h;
+  GameResources::UPtr game_resources;
+
+  std::mutex running_flag_mutex;
 
   int score{0};
 
-  void PlaceFood();
   void PlaceObstacle(ObstaclesGenerator::SPtr generator);
-  bool IsOccupiedByObstacles(const SDL_Point& point);
-  bool CanPlaceObstacle(const SDL_Point& point);
   void Update(Level lvl);
 };
 
