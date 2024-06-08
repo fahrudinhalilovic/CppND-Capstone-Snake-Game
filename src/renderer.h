@@ -5,7 +5,7 @@
 #include <string>
 #include "SDL.h"
 #include "snake.h"
-#include "obstacles_generators/snake_hunter.h"
+#include "snake_hunter.h"
 
 class Renderer {
  public:

@@ -11,7 +11,7 @@
 #include "snake.h"
 #include "player.h"
 #include "obstacles_generator.h"
-#include "obstacles_generators/snake_hunter.h"
+#include "snake_hunter.h"
 
 Level InputGameLevel();
 

@@ -1,5 +1,5 @@
 #include "snake.h"
-#include "./obstacles_generators/snake_hunter.h"
+#include "snake_hunter.h"
 
 #include <cmath>
 #include <iostream>
