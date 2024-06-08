@@ -118,15 +118,25 @@ void Game::PlaceFood() {
 
 void Game::PlaceObstacle(ObstaclesGenerator::SPtr generator)
 {
+  Uint32 obstacle_generated = SDL_GetTicks();
+
   while ( true ) {
-    // pause for 4s before creating a new obstacle
-    SDL_Delay(4000u);
 
     std::unique_lock running_flag_lock { running_flag_mutex };
     if ( !running ) {
       return;
     }
     running_flag_lock.unlock();
+
+    Uint32 curr_ticks = SDL_GetTicks();
+    // 4s delay before creating a new obstacle
+    if ( curr_ticks - obstacle_generated < 4000u ) {
+      // make a small break to avoid killing CPU
+      SDL_Delay(100u);
+      continue;
+    }
+
+    obstacle_generated = curr_ticks;
 
     std::unique_lock snake_lock { snake_mutex };
     if ( !snake.alive ) {
