@@ -18,6 +18,7 @@ add_executable(
     SnakeGame
         src/main.cpp
         src/game.cpp
+        src/game_resources.cpp
         src/controller.cpp
         src/renderer.cpp
         src/snake.cpp

@@ -4,8 +4,8 @@
 #include <vector>
 #include <string>
 #include "SDL.h"
-#include "snake.h"
-#include "snake_hunter.h"
+
+#include "game_resources.h"
 
 class Renderer {
  public:
@@ -13,8 +13,8 @@ class Renderer {
            const std::size_t grid_width, const std::size_t grid_height);
   ~Renderer();
 
-  void Render(Snake const snake, SDL_Point const &food, const std::vector<SDL_Point>& obstacles, const SnakeHunter& snake_hunter);
-  void UpdateWindowTitle(const std::string& username, int score, int fps);
+  void Render(GameResources& game_resources);
+  void UpdateWindowTitle(GameResources& game_resources, int score, int fps);
 
  private:
   SDL_Window *sdl_window;

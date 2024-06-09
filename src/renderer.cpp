@@ -39,7 +39,14 @@ Renderer::~Renderer() {
   SDL_Quit();
 }
 
-void Renderer::Render(Snake const snake, SDL_Point const &food, const std::vector<SDL_Point>& obstacles, const SnakeHunter& snake_hunter) {
+void Renderer::Render(GameResources& game_resources) {
+  std::lock_guard resources_lock { game_resources.resources_mutex };
+
+  const Snake& snake = game_resources.snake;
+  const SDL_Point& food = game_resources.food;
+  const std::vector<SDL_Point>& obstacles = game_resources.obstacles;
+  const SnakeHunter& snake_hunter = game_resources.snake_hunter;
+
   SDL_Rect block;
   block.w = screen_width / grid_width;
   block.h = screen_height / grid_height;
@@ -105,7 +112,10 @@ void Renderer::Render(Snake const snake, SDL_Point const &food, const std::vecto
   SDL_RenderPresent(sdl_renderer);
 }
 
-void Renderer::UpdateWindowTitle(const std::string& username, int score, int fps) {
+void Renderer::UpdateWindowTitle(GameResources& game_resources, int score, int fps) {
+  std::lock_guard resources_lock { game_resources.resources_mutex };
+
+  const auto& username = game_resources.player.Username();
   std::string title{"Player: " + username + " Snake Score: " + std::to_string(score) + " FPS: " + std::to_string(fps)};
   SDL_SetWindowTitle(sdl_window, title.c_str());
 }
