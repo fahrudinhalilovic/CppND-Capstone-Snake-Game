@@ -39,6 +39,7 @@ void Game::Run(Controller const &controller, Renderer &renderer, std::size_t tar
   int frame_count = 0;
 
   std::thread obstacles_thread { &Game::PlaceObstacle, this };
+  std::thread snake_hunter_thread { &Game::HuntSnake, this };
 
   while (running) {
     frame_start = SDL_GetTicks();
@@ -49,9 +50,14 @@ void Game::Run(Controller const &controller, Renderer &renderer, std::size_t tar
     controller.HandleInput(running, *game_resources);
     running_flag_lock.unlock();
 
+    // Suspend the snake_hunter_thread until snake does not make a move.
+    std::unique_lock<std::mutex> snake_move_notifier_lock { snake_move_mutex };
+    // Make a snake move now.
     Update();
-
-    game_resources->Hunt();
+    // Notify snake hunter that snake has moved.
+    snake_move = true;
+    snake_move_notifier_lock.unlock();
+    snake_move_cv.notify_one();
 
     renderer.Render(*game_resources);
 
@@ -76,16 +82,19 @@ void Game::Run(Controller const &controller, Renderer &renderer, std::size_t tar
     }
   }
 
-  // Game stopped, so stop the thread for creating obstacles too.
+  // Game stopped, so stop the threads for creating obstacles and hunting snake.
   obstacles_thread.join();
+  snake_hunter_thread.join();
 }
 
 void Game::PlaceObstacle()
 {
+  // This thread simply generates obstacles every 4 seconds.
+
   Uint32 obstacle_generated = SDL_GetTicks();
 
   while ( true ) {
-
+    // Check if user exited the game.
     std::unique_lock running_flag_lock { running_flag_mutex };
     if ( !running ) {
       return;
@@ -93,20 +102,49 @@ void Game::PlaceObstacle()
     running_flag_lock.unlock();
 
     Uint32 curr_ticks = SDL_GetTicks();
-    // 4s delay before creating a new obstacle
+    // 4s delay before creating a new obstacle.
     if ( curr_ticks - obstacle_generated < 4000u ) {
-      // make a small break to avoid killing CPU
+      // Make a small break to avoid killing CPU.
       SDL_Delay(100u);
       continue;
     }
 
     obstacle_generated = curr_ticks;
 
+    // Check for the game end.
     if ( game_resources->GameFinished() ) {
       return;
     }
 
     game_resources->PlaceObstacle();
+  }
+}
+
+void Game::HuntSnake()
+{
+  // This thread must actually wait for the snake move in order to
+  // to compute the next position of the snake hunter.
+
+  while (true) {
+    // Check if user exited the game.
+    std::unique_lock running_flag_lock { running_flag_mutex };
+    if ( !running ) {
+      return;
+    }
+    running_flag_lock.unlock();
+
+    // Check for the game end.
+    if ( game_resources->GameFinished() ) {
+      return;
+    }
+
+    std::unique_lock<std::mutex> snake_move_listener_lock { snake_move_mutex };
+    snake_move_cv.wait(snake_move_listener_lock, [&] { return snake_move; });
+
+    // Once when the snake has finally made its move, its time
+    // for the snake hunter to hunt.
+    game_resources->Hunt();
+    snake_move = false;
   }
 }
 

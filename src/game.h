@@ -3,6 +3,7 @@
 
 #include <random>
 #include <mutex>
+#include <condition_variable>
 
 #include "SDL.h"
 
@@ -22,13 +23,19 @@ class Game {
 private:
   void Update();
   void PlaceObstacle();
+  void HuntSnake();
 
  private:
   bool running = true;
   size_t grid_width;
   size_t grid_height;
   GameResources::UPtr game_resources;
+
   std::mutex running_flag_mutex;
+  std::mutex snake_move_mutex;
+  std::condition_variable snake_move_cv;
+  bool snake_move = false;
+
   int score{0};
 };
 
