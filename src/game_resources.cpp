@@ -1,6 +1,7 @@
 #include "game_resources.h"
 #include "obstacles_generator.h"
 
+#include <cassert>
 #include "SDL.h"
 
 GameResources::GameResources(std::size_t grid_w, std::size_t grid_h, Player p, Level lvl)
@@ -117,6 +118,12 @@ Snake::Direction GetOppositeDirection(Snake::Direction direction)
     case Snake::Direction::kRight:
       return Snake::Direction::kLeft;
   }
+
+  // We must not end up here after all.
+  assert (!"Snake::Direction enum was not handled properly!");
+
+  // Just to shut up compiler warnings.
+  return Snake::Direction::kUp;
 }
 
 void GameResources::UpdateSnakeDirection(Snake::Direction input)
