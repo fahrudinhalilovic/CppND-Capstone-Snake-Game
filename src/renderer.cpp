@@ -85,8 +85,9 @@ void Renderer::Render(GameResources& game_resources) {
 
   // Render snake hunter
   SDL_SetRenderDrawColor(sdl_renderer, 255, 87, 51, 0xFF);
-  block.x = snake_hunter.CurrentPosition().x * block.w;
-  block.y = snake_hunter.CurrentPosition().y * block.h;
+  auto snake_hunter_pt = snake_hunter.CurrentPosition();
+  block.x = snake_hunter_pt.x * block.w;
+  block.y = snake_hunter_pt.y * block.h;
   SDL_RenderFillRect(sdl_renderer, &block);
 
   // If game has finished, then render special red rectangle
@@ -102,8 +103,8 @@ void Renderer::Render(GameResources& game_resources) {
         block.y = static_cast<int>(snake.head_y) * block.h;
         break;
       case DeathCause::CatchedBySnakeHunter:
-        block.x = snake_hunter.CurrentPosition().x * block.w;
-        block.y = snake_hunter.CurrentPosition().y * block.h;
+        block.x = snake_hunter_pt.x * block.w;
+        block.y = snake_hunter_pt.y * block.h;
         break;
     }
 

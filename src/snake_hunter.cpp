@@ -4,12 +4,6 @@
 #include <cassert>
 #include <iostream>
 
-SnakeHunter::SnakeHunter(size_t g_width, size_t g_height)
-    : grid_width { g_width },
-      grid_height { g_height },
-      x { 0 },
-      y { 0 }  {}
-
 void normalizePoint(size_t grid_height, size_t grid_width, int& x, int& y)
 {
     x += grid_height;
@@ -34,6 +28,12 @@ void normalizePoint(size_t grid_height, size_t grid_width, float& x, float& y)
         y += grid_height;
     }
 }
+
+SnakeHunter::SnakeHunter(size_t g_width, size_t g_height)
+    : grid_width { g_width },
+      grid_height { g_height },
+      x { 0 },
+      y { 0 }  {}
 
 void SnakeHunter::Hunt(const Snake& snake, const std::vector<SDL_Point>& obstacles, const SDL_Point& food)
 {
@@ -83,7 +83,7 @@ void SnakeHunter::Hunt(const Snake& snake, const std::vector<SDL_Point>& obstacl
             }
             else {
                 assert ( curr_field == FieldType::Empty );
-                reconstruction_site[new_pt.x][new_pt.y] = {x_movement[idx], y_movement[idx]};
+                reconstruction_site[new_pt.x][new_pt.y] = std::make_pair(x_movement[idx], y_movement[idx]);
                 field[new_pt.x][new_pt.y] = FieldType::SnakeHunter;
                 queue.push(std::move(new_pt));
             }
@@ -113,6 +113,8 @@ void SnakeHunter::ReconstructPathFromSnakeToHunter(const Snake& snake,
         curr_pt = SDL_Point { new_x, new_y };
     }
 
+    // snake hunter is 2 times slower than snake
+    // otherwise, game is just too difficult to play
     auto new_x = x + ( snake.speed / 2 ) * last_movement.second;
     auto new_y = y + ( snake.speed / 2 ) * last_movement.first;
     normalizePoint(grid_height, grid_width, new_x, new_y);
