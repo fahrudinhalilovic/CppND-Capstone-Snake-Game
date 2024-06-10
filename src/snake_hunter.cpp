@@ -18,6 +18,23 @@ void normalizePoint(size_t grid_height, size_t grid_width, int& x, int& y)
     y = std::fmod(y, grid_width);
 }
 
+void normalizePoint(size_t grid_height, size_t grid_width, float& x, float& y)
+{
+    if ( x >= grid_width ) {
+        x -= grid_width;
+    }
+    else if ( x < 0 ) {
+        x += grid_width;
+    }
+
+    if ( y >= grid_height ) {
+        y -= grid_height;
+    }
+    else if ( y < 0 ) {
+        y += grid_height;
+    }
+}
+
 void SnakeHunter::Hunt(const Snake& snake, const std::vector<SDL_Point>& obstacles, const SDL_Point& food)
 {
     std::vector<std::vector<FieldType>> field { grid_height, std::vector<FieldType> { grid_width, FieldType::Empty } };
@@ -97,21 +114,8 @@ void SnakeHunter::ReconstructPathFromSnakeToHunter(const Snake& snake,
     }
 
     auto new_x = x + ( snake.speed / 2 ) * last_movement.second;
-    if ( new_x >= grid_width ) {
-        new_x -= grid_width;
-    }
-    if ( new_x < 0 ) {
-        new_x += grid_width;
-    }
-
     auto new_y = y + ( snake.speed / 2 ) * last_movement.first;
-    if ( new_y >= grid_height ) {
-        new_y -= grid_height;
-    }
-    if ( new_y < 0 ) {
-        new_y += grid_height;
-    }
-
+    normalizePoint(grid_height, grid_width, new_x, new_y);
     x = new_x;
     y = new_y;
 }

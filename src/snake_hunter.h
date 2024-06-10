@@ -36,8 +36,8 @@ private:
     size_t grid_height;
 
     // location of the hunter
-    double x;
-    double y;
+    float x;
+    float y;
 };
 
 #endif
