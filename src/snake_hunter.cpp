@@ -20,10 +20,6 @@ void normalizePoint(size_t grid_height, size_t grid_width, int& x, int& y)
 
 void SnakeHunter::Hunt(const Snake& snake, const std::vector<SDL_Point>& obstacles, const SDL_Point& food)
 {
-    if ( !snake.alive ) {
-        return;
-    }
-
     std::vector<std::vector<FieldType>> field { grid_height, std::vector<FieldType> { grid_width, FieldType::Empty } };
     ReconstructionSite reconstruction_site { grid_height, std::vector<std::pair<int,int>> { grid_width, {0, 0} } };
 

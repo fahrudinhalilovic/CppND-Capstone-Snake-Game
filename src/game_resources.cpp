@@ -25,7 +25,7 @@ bool GameResources::GameFinished()
 {
   std::lock_guard resources_lock { resources_mutex };
 
-  return !snake.alive;
+  return GameFinishedImpl();
 }
 
 void GameResources::UpdatePlayersHighestScore(int new_score)
@@ -81,7 +81,7 @@ bool GameResources::UpdateSnake()
 {
   std::lock_guard resources_lock { resources_mutex };
 
-  if (!snake.alive) {
+  if ( GameFinishedImpl() ) {
     return false;
   }
 
@@ -134,7 +134,16 @@ void GameResources::Hunt()
 {
   std::lock_guard resources_lock { resources_mutex };
 
+    if ( GameFinishedImpl() ) {
+        return;
+    }
+
   snake_hunter.Hunt(snake, obstacles, food);
+}
+
+bool GameResources::GameFinishedImpl()
+{
+  return !snake.alive;
 }
 
 void GameResources::PlaceFoodImpl()

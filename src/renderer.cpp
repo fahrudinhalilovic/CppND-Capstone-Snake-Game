@@ -89,8 +89,10 @@ void Renderer::Render(GameResources& game_resources) {
   block.y = snake_hunter.CurrentPosition().y * block.h;
   SDL_RenderFillRect(sdl_renderer, &block);
 
-  if (snake.alive) {
-    // red color when snake dies
+  // If game has finished, then render special red rectangle
+  // on the problematic field.
+  if ( !game_resources.GameFinishedImpl() ) {
+    // Red color when snake dies.
     SDL_SetRenderDrawColor(sdl_renderer, 0x00, 0x7A, 0xCC, 0xFF);
 
     switch ( snake.FindDeathCause() ) {

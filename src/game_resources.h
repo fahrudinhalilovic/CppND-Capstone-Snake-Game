@@ -33,6 +33,7 @@ class GameResources {
 
 private:
 
+  bool GameFinishedImpl();
   void PlaceFoodImpl();
   bool IsOccupiedByObstacles(int x, int y);
   bool CanPlaceObstacle(int x, int y);
