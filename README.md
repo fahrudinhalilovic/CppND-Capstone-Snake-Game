@@ -44,6 +44,8 @@ Fabian beginner:0 medium:8 advanced:6
   * For advanced level, obstacles are generated in front of the snake.
 * Introducing SnakeHunter class. As its name suggests, instance of this class has one and only task - hunting the snake. Entire process of hunting the snake happens in a separate thread.
 
+<img src="snake_game_with_obstacles_and_snake_hunter.gif"/>
+
 ## Required rubric points
 
 * Loops, Functions, I/O
