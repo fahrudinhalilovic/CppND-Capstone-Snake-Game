@@ -1,5 +1,6 @@
 #include "renderer.h"
 #include <iostream>
+#include <sstream>
 #include <string>
 
 Renderer::Renderer(const std::size_t screen_width,
@@ -118,7 +119,14 @@ void Renderer::Render(GameResources& game_resources) {
 void Renderer::UpdateWindowTitle(GameResources& game_resources, int score, int fps) {
   std::lock_guard resources_lock { game_resources.resources_mutex };
 
-  const auto& username = game_resources.player.Username();
-  std::string title{"Player: " + username + " Snake Score: " + std::to_string(score) + " FPS: " + std::to_string(fps)};
+  const auto lvl = game_resources.level;
+  std::ostringstream oss;
+
+  oss << "Player: " + game_resources.player.Username() << " ";
+  oss << "Highest score (" << ToString(lvl) << "): " <<  game_resources.player.HighestScore(lvl) << " ";
+  oss << "Snake Score: " + std::to_string(score) << " ";
+  oss << "FPS: " + std::to_string(fps);
+
+  const auto title = oss.str();
   SDL_SetWindowTitle(sdl_window, title.c_str());
 }
