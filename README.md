@@ -42,6 +42,7 @@ Fabian beginner:0 medium:8 advanced:6
   * For beginner level, no obstacles are generated at all.
   * For intermediate level, obstacles are randomly generated.
   * For advanced level, obstacles are generated in front of the snake.
+* Introducing SnakeHunter class. As its name suggests, instance of this class has one and only task - hunting the snake. Entire process of hunting the snake happens in a separate thread.
 
 ## Required rubric points
 
@@ -53,13 +54,16 @@ Fabian beginner:0 medium:8 advanced:6
   * Following new classes have been introduced: Player, ObstaclesGenerator, BeginnerObstaclesGenerator, MediumObstaclesGenerator and AdvancedObstaclesGenerator.
   * Classes like Player, MediumObstaclesGenerator and AdvancedObstaclesGenerator utilize member initialization lists to initialize their members.
   * ObstaclesGenerator represents base class (interface) which is inherited (implemented) by the BeginnerObstaclesGenerator, MediumObstaclesGenerator and AdvancedObstaclesGenerator.
+  * normalizePoint function has been overloaded for integers and floats.
 * Memory Management
   * Using references in function declarations: e.g. in a function PersistPlayersToFile, vector of players is passed by const ref to avoid copying data.
   * On multiple ocassions std::move is used to move data instead of copying them (e.g. constructor of the Player class).
   * To achieve polymorphism and execute correct version of the ObstaclesGenerator::CreateObstacle method, smart pointers are used and they are created inside the factory function ObstaclesGenerator::ObstaclesFactory.
 * Concurrency
-  * New thread for generating obstacles has been introduced.
-  * Since the main and newly introduced thread for generating obstacles share some data (food, snake, obstacles) mutexes are used to protect access to these shared resources from these 2 threads simultaneously.
+  * Thread for generating obstacles has been introduced.
+  * Thread for hunting the snake has been introduced as well.
+  * Since these 3 threads (main thread, thread for generating obstacles and thread for hunting the snake) share some data (food, snake, obstacles etc.) mutexes are used to protect access to these shared resources from these 3 threads simultaneously. Since the usage of the mutexes directly in methods of Game class became too complex and not maintainable at all, I was looking for more convenient solution which should allow me easier access to these shared resources. In the book called "Concurrency with Modern C++" from author Rainer Grimm, I found one very convenient approach called Thread-Safe Interface. After, realising that this type of design pattern could be applied for my problem I implemented new class called GameResources which actually implements this Thread-Safe Interface approach.
+  * Thread for hunting the snake looks for the next position of the snake hunter which should bring him closer to the snake. This thread can only be executed once when the snake has made its move. Lookup algorithm which finds the closest path to the snake is actually BFS (breadth first search). To ensure that the thread for hunting the snake is executed only upon snake has made a move, condition variable has been used (i.e. main thread which controls the snake movement will notify the thread in which snake hunter tries to get closer to the snake and then, inside this thread calculation for the closest path begins).
 
 ## CC Attribution-ShareAlike 4.0 International
 
