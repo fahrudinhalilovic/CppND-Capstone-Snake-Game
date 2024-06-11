@@ -65,11 +65,8 @@ Fabian beginner:0 medium:8 advanced:6
   * Thread for generating obstacles has been introduced.
   * Thread for hunting the snake has been introduced as well.
   * Since these 3 threads (main thread, thread for generating obstacles and thread for hunting the snake) share some data (food, snake, obstacles etc.) mutexes are used to protect access to these shared resources from these 3 threads simultaneously. Since the usage of the mutexes directly in methods of Game class became too complex and not maintainable at all, I was looking for more convenient solution which should allow me easier access to these shared resources. In the book called "Concurrency with Modern C++" from author Rainer Grimm, I found one very convenient approach called Thread-Safe Interface. After, realising that this type of design pattern could be applied for my problem I implemented new class called GameResources which actually implements this Thread-Safe Interface approach.
-  * Thread for hunting the snake looks for the next position of the snake hunter which should bring him closer to the snake. This thread can only be executed once when the snake has made its move. Lookup algorithm which finds the closest path to the snake is actually BFS (breadth first search). To ensure that the thread for hunting the snake is executed only upon snake has made a move, condition variable has been used (i.e. main thread which controls the snake movement will notify the thread in which snake hunter tries to get closer to the snake and then, inside this thread calculation for the closest path begins).
-
-## CC Attribution-ShareAlike 4.0 International
-
-
+  * Thread for hunting the snake looks for the next position of the snake hunter which should bring snake hunter closer to the snake. This thread can only be executed after the snake has made its move. Lookup algorithm which finds the shortest path to the snake is actually BFS (breadth first search). To ensure that the thread for hunting the snake is executed only after snake has made its move i.e. that these 2 threads are synchronized properly, condition variable has been used as it was suggested in Udacity course but also in "Concurrency with Modern C++" from author Rainer Grimm. Main thread which controls the snake movement will notify the thread in which snake hunter tries to find the shortest path to the snake, and when that happens BFS algorithm for finding the shortest path to the snake will be executed.
+ Attribution-ShareAlike 4.0 International
 Shield: [![CC BY-SA 4.0][cc-by-sa-shield]][cc-by-sa]
 
 This work is licensed under a
